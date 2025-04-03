@@ -1,0 +1,184 @@
+openapi: 3.0.0
+info:
+  title: Blockchain Transaction Parser API
+  description: API for parsing and tracking blockchain transactions with subscription capabilities.
+  version: 1.0.0
+tags:
+  - name: TxParser
+    description: Operations related to blockchain transaction parsing and subscription
+paths:
+  /txparser/v0/current-block:
+    get:
+      summary: Get the last parsed block
+      description: Returns the most recent block number that has been processed by the parser.
+      operationId: getCurrentBlock
+      tags:
+        - TxParser
+      responses:
+        "200":
+          description: Successfully retrieved the latest parsed block number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BlockNumberResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /txparser/v0/subscribe:
+    post:
+      summary: Subscribe an address for transaction tracking
+      description: Adds a blockchain address to the subscription list for transaction monitoring.
+      operationId: subscribeAddress
+      tags:
+        - TxParser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionRequest"
+      responses:
+        "200":
+          description: Address successfully subscribed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid address format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /txparser/v0/transactions/{address}:
+    get:
+      summary: Get transactions for a specific address
+      description: Returns all transactions associated with the specified blockchain address.
+      operationId: getAddressTransactions
+      tags:
+        - TxParser
+      parameters:
+        - $ref: "#/components/parameters/AddressPathParam"
+      responses:
+        "200":
+          description: Successfully retrieved transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Invalid address format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Address not found or no transactions available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    BlockNumberResponse:
+      type: object
+      properties:
+        blockNumber:
+          type: integer
+          format: int64
+          example: 12345678
+          description: The latest block number processed by the parser
+    SubscriptionRequest:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+          example: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+          description: Valid blockchain address to subscribe to
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Address successfully subscribed"
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+          description: Unique transaction identifier
+        blockNumber:
+          type: integer
+          format: int64
+          example: 12345678
+        source:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+          example: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+        destination:
+          type: string
+          pattern: '^0x[a-fA-F0-9]{40}$'
+          example: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+        amountInEther:
+          type: string
+          pattern: '^\d+\.\d+$'
+          example: "1.25"
+        feesInEther:
+          type: string
+          pattern: '^\d+\.\d+$'
+          example: "0.001"
+        creationDate:
+          type: string
+          format: date-time
+          example: "2023-01-01T12:00:00Z"
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error message"
+        code:
+          type: integer
+          example: 404
+        details:
+          type: string
+          example: "Additional error details"
+
+  parameters:
+    AddressPathParam:
+      name: address
+      in: path
+      required: true
+      description: Blockchain address to query
+      schema:
+        type: string
+        pattern: '^0x[a-fA-F0-9]{40}$'
+        example: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+
+  responses:
+    InternalServerError:
+      description: Internal server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+            example:
+              error: "Internal server error"
+              code: 500
+              details: "Unexpected error occurred while processing the request"

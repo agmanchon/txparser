@@ -1,0 +1,48 @@
+flowchart TD
+%% Main Server Loop
+    A[StartServer: Begin] --> B{Context Done?}
+    B -->|Yes| C[Log 'tx parser shutdown'\nReturn]
+    B -->|No| D[Call processTransactions]
+    D --> E[Sleep for 1 second]
+    E --> B
+
+%% Process Transactions Function
+    D --> F[processTransactions: Start]
+    F --> G[Get Block From Repository]
+    G --> H{Error?}
+    H -->|Yes| I[Log Error\nReturn]
+    H -->|No| J[Store Block Number]
+    J --> K{Block Number == 0?}
+    K -->|Yes| L[Get Recent Block From Chain]
+    L --> M{Error?}
+    M -->|Yes| N[Log Error\nReturn]
+    M -->|No| O[Store New Block Number]
+    K -->|No| P[Increment Block Number by 1]
+    O --> Q[Get Block By Number]
+    P --> Q
+    Q --> R{Error?}
+    R -->|Yes| S[Log Error\nReturn]
+    R -->|No| T[For Each Transaction Hash]
+
+%% Transaction Processing
+    T --> U[Get Transaction Details]
+    U --> V{Error?}
+    V -->|Yes| W[Log Error\nReturn]
+    V -->|No| X[Get All Subscribed Addresses]
+    X --> Y{Error?}
+    Y -->|Yes| Z[Log Error\nReturn]
+    Y -->|No| AA[For Each Subscribed Address]
+
+%% Address Matching
+    AA --> AB{Address Matches\nSource/Destination?}
+    AB -->|No| AA
+    AB -->|Yes| AC[Create Transaction Record]
+    AC --> AD[Store Transaction]
+    AD --> AE{Error?}
+    AE -->|Yes| AF[Log Error\nReturn]
+    AE -->|No| AA
+
+%% Flow Completion
+    AA --> AG[Next Transaction]
+    AG --> T
+    T --> AH[End of Transactions\nReturn]
