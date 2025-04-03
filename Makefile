@@ -1,4 +1,4 @@
-.PHONY: generate run
+.PHONY: generate run test
 
 # Variables
 OPENAPI_SPEC := api-spec/openapi.yaml
@@ -7,6 +7,8 @@ TARGET_DIR := pkg/infra/httpinfragenerated
 
 CUR_DIR := $(CURDIR)
 CONFIG_PATH := $(CUR_DIR)
+
+TEST_PATH := $(CUR_DIR)/test
 
 # Generate server stubs and move to infrastructure layer
 generate:
@@ -31,4 +33,7 @@ generate:
 run:
 	@echo "Starting server..."
 	go run main.go start --configPath $(CONFIG_PATH)
+
+test:
+	go test -v $(TEST_PATH)/...
 

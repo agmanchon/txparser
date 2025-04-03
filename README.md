@@ -37,8 +37,11 @@ make run
 go run main.go start --configPath ./
 ```
 The API will be available at http://localhost:8080
-
-
+### Running tests
+Start running logic tests using this method:
+```bash
+make test
+```
 ## API Documentation
 ### Swagger UI
 

@@ -35,6 +35,5 @@ func TestEthereumRpcAdapterOk(t *testing.T) {
 		transaction, err := ethAdapter.GetTransactionAdapter(ctx, getTransactionByHashInput)
 		require.Nil(t, err)
 		require.NotNil(t, transaction)
-		//time.Sleep(100 * time.Millisecond)
 	}
 }
